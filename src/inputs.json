@@ -1,0 +1,8 @@
+{
+  "age": 34,
+  "income": 72000,
+  "risk_score": 12,
+  "employment_status": "full_time",
+  "requested_amount": 15000,
+  "existing_customer": true
+}

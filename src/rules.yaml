@@ -1,0 +1,45 @@
+rules:
+  - name: approve_low_risk
+    priority: 1
+    conditions:
+      risk_score:
+        min: 0
+        max: 10
+      requested_amount:
+        max: 20000
+    outcome: APPROVE
+    escalation: NONE
+
+  - name: approve_existing_customer
+    priority: 2
+    conditions:
+      existing_customer: true
+      requested_amount:
+        max: 25000
+    outcome: APPROVE
+    escalation: NONE
+
+  - name: escalate_medium_risk
+    priority: 3
+    conditions:
+      risk_score:
+        min: 11
+        max: 20
+    outcome: REVIEW
+    escalation: ESCALATE_TO_MANAGER
+
+  - name: reject_high_risk
+    priority: 4
+    conditions:
+      risk_score:
+        min: 21
+    outcome: REJECT
+    escalation: ESCALATE_TO_RISK_TEAM
+
+  - name: reject_high_amount
+    priority: 5
+    conditions:
+      requested_amount:
+        min: 50000
+    outcome: REJECT
+    escalation: ESCALATE_TO_FINANCE
