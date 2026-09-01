@@ -6,7 +6,7 @@ This file is intentionally beginner-friendly and heavily commented so that
 non-technical users can run the example without touching the core engine.
 """
 
-from framework import DeterministicFramework
+from deterministic.framework import DeterministicFramework
 
 
 def run_example():
