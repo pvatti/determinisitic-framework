@@ -133,6 +133,7 @@ Engine Logic
 
 ## Output example
 
+```text
 === Deterministic Framework Example ===
 Matched rule : escalate_medium_risk
 Outcome      : REVIEW
@@ -144,6 +145,7 @@ Evaluation Trace:
  - escalate_medium_risk: MATCH
  - reject_high_risk: SKIP
  - reject_high_amount: SKIP
+```
 
 Rule Matching Logic
 
