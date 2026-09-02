@@ -16,6 +16,7 @@ It is intentionally simple, readable, and sage for beginners.
 
 ## Repository Structure
 
+```text
 deterministic-framework/
 │
 ├── src/
@@ -32,7 +33,7 @@ deterministic-framework/
 ├── requirements.txt
 ├── LICENSE
 └── README.md
-
+```
 
 ## Create a Python environment
 
