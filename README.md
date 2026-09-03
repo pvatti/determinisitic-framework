@@ -19,10 +19,18 @@ It is intentionally simple, readable, and sage for beginners.
 deterministic-framework/
 │
 ├── src/
-│   ├── framework.py
-│   ├── rules.yaml
-│   ├── inputs.json
-│   └── examples.py
+│   ├── deterministic/
+│   │   ├── rules.yaml
+│   │   ├── inputs.json
+│   │   ├── engine.py
+│   │   ├── router.py
+│   │   └── __init__.py
+│   │
+│   ├── ai/
+│   │   ├── ai_model_interface.py
+│   │   ├── ollama_model.py
+│   │   ├── ai_action_layer.py
+│   │   └── __init__.py
 │
 ├── docs/
 │   ├── architecture.md
@@ -200,3 +208,120 @@ if __name__ == "__main__":
 * Beginner-friendly
 * Zero AI "magic"
 * Perfect for governance, compliance, and rule-based workflows
+
+# Local AI Setup (Ollam) + Running Deterministic & AI Modes
+
+## 1. Install Ollama
+
+Ollama is a local LLM runtime that allows yyou to rrun models entire on yyour machine: no API keys, no cloud dependency
+
+### macOS
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+or Install via Homebrew:
+
+```bash
+brew install ollama
+```
+
+### Windows
+
+1. Download the installer: https://ollama.com/download
+2. Run OllamaSetup.exe
+3. Verify installation:
+
+```Powershell
+ollama --version
+```
+### Linux
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+Verify installation:
+
+```bash
+ollama --version
+```
+
+## 2. Download a Model
+
+Your AI layer requires a mode.
+You can choose any model supported by Ollama.
+
+### Recommended model for low-memory machines (4-8 GB RAM)
+
+1. phi3 (best overall forr low memory)
+2. phi3.5 (slightly better, still lightweight)
+3. gemma:2B (good alternative)
+4. mistral-tiny (fasted, siimplest)
+5. llama3.1:3b (higher quality, still safe)
+
+### 3. How to pull these models for Ollama
+
+```bash
+ollama pull model
+```
+
+example:
+
+```bash
+ollama pull phi3
+```
+
+If you want to see which models you have already installed run:
+
+```bash
+ollama list
+```
+
+### 4. Configure the AI Model in Code
+
+Inside of the examply.py file set the model name to match what you installed:
+
+for example:
+
+```Python
+ai_model = OllamaModel(model_name="phi3")
+```
+
+### 5. Running the Deterministic Framework (Article 1)
+
+```python
+python src/examples.py
+```
+
+You will see
+
+* matched rule
+* deterministic outome
+* escalation
+* evaluation trace (if enabled)
+
+No AI is used in this mode.
+
+### 6. Running Deterministic + AI Mode (Article 2)
+
+This runs the deterministic engine plus the AI explanation layer.
+
+```bash
+python src/examples.py --ai
+```
+
+You will see:
+
+* deterministic output
+* AI explanation
+* AI outcome
+* matched rule
+* escalation
+
+This mode requires:
+
+* Ollama installed
+* a model downloaded
+* correct model name adjusted in the examples.py

@@ -39,3 +39,54 @@ class AIActionRouter:
             "trace": trace,
             "ai_message": message
         }
+
+    # -------------------------------------------------------------------------
+    # AI Prompt Generators
+    # -------------------------------------------------------------------------
+
+    def _generate_approval_message(self, matched_rule: str, trace: Any) -> str:
+        prompt = (
+            "You are an assistant generating a clear, concise approval message.\n\n"
+            f"Decision outcome: APPROVE\n"
+            f"Matched rule: {matched_rule}\n"
+            f"Evaluation trace: {trace}\n\n"
+            "Write a short message explaining that the request was approved and why."
+        )
+        return self.ai_model.generate(prompt)
+
+    def _generate_review_message(self, matched_rule: str, trace: Any, escalation: str) -> str:
+        prompt = (
+            "You are an assistant generating a message for a request under review.\n\n"
+            f"Decision outcome: REVIEW\n"
+            f"Matched rule: {matched_rule}\n"
+            f"Escalation path: {escalation}\n"
+            f"Evaluation trace: {trace}\n\n"
+            "Write a short message explaining that the request is being reviewed "
+            "and what happens next."
+        )
+        return self.ai_model.generate(prompt)
+
+    def _generate_escalation_message(self, matched_rule: str, trace: Any, escalation: str) -> str:
+        prompt = (
+            "You are an assistant generating a message for a request requiring escalation.\n\n"
+            f"Decision outcome: ESCALATE\n"
+            f"Matched rule: {matched_rule}\n"
+            f"Escalation path: {escalation}\n"
+            f"Evaluation trace: {trace}\n\n"
+            "Write a short message explaining that additional verification is required "
+            "without promising an outcome."
+        )
+        return self.ai_model.generate(prompt)
+
+    def _generate_fallback_message(self, matched_rule: str, trace: Any, escalation: str) -> str:
+        prompt = (
+            "You are an assistant generating a message for a request requiring escalation.\n\n"
+            f"Decision outcome: ESCALATE\n"
+            f"Matched rule: {matched_rule}\n"
+            f"Escalation path: {escalation}\n"
+            f"Evaluation trace: {trace}\n\n"
+            "Write a short message explaining that additional verification is required "
+            "without promising an outcome."
+        )
+        return self.ai_model.generate(prompt)
+    
