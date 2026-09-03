@@ -16,6 +16,7 @@ It is intentionally simple, readable, and sage for beginners.
 
 ## Repository Structure
 
+```text
 deterministic-framework/
 │
 ├── src/
@@ -40,7 +41,7 @@ deterministic-framework/
 ├── requirements.txt
 ├── LICENSE
 └── README.md
-
+```
 
 ## Create a Python environment
 
@@ -140,6 +141,7 @@ Engine Logic
 
 ## Output example
 
+```text
 === Deterministic Framework Example ===
 Matched rule : escalate_medium_risk
 Outcome      : REVIEW
@@ -151,6 +153,7 @@ Evaluation Trace:
  - escalate_medium_risk: MATCH
  - reject_high_risk: SKIP
  - reject_high_amount: SKIP
+```
 
 Rule Matching Logic
 
