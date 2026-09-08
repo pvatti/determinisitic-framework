@@ -212,7 +212,7 @@ if __name__ == "__main__":
 * Zero AI "magic"
 * Perfect for governance, compliance, and rule-based workflows
 
-# Local AI Setup (Ollam) + Running Deterministic & AI Modes
+# Local AI Setup (Ollama) + Running Deterministic & AI Modes
 
 ## 1. Install Ollama
 
