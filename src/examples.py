@@ -6,7 +6,7 @@ This file is intentionally beginner-friendly and heavily commented so that
 non-technical users can run the example without touching the core engine.
 """
 
-from deterministic.framework import DeterministicFramework
+from deterministic.framework import DeterministicFramework, Agent
 from ai.ollama_model import OllamaModel
 from ai.ai_action_layer import AIActionRouter
 import sys
@@ -69,12 +69,37 @@ def run_ai_example():
 
     return ai_output
 
+def agent_example():
+    framework = DeterministicFramework()
+    agent = Agent(framework)
+
+    text = "We have an urgent deadline and potential risk."
+
+    #Agentic plan
+    plan = agent.plan(text)
+    print("PLAN", plan)
+
+    #Agentic action
+    outcome = agent.act(plan)
+    print("OUTCOME:", outcome)
+
+    # agentic learning
+    feedback = "Escalation felt too aggresive for this context"
+    agent.learn(feedback)
+    print("UPDATED POLICY", agent.policy)
+
+    #Show adaption
+    new_plan = agent.plan("This is urgent but not risky")
+    print("NEW PLAN AFTER LEARNING", new_plan)
 
 if __name__ == "__main__":
 
     if "--ai" in sys.argv:
-        #Article 2: run ai
+        #Article 9: run ai
         run_ai_example()
+    elif "--agentic" in sys.argv:
+        #Article 10: run agentic
+        agent_example()
     else:
         #article 1 default : run deterministic only
         run_deterministic_example()

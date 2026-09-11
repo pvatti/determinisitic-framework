@@ -328,3 +328,38 @@ This mode requires:
 * Ollama installed
 * a model downloaded
 * correct model name adjusted in the examples.py
+
+### 7. Running Deterministic + agentic Mode (Article 3)
+
+This runs the deterministic engine plus a learning agentic layer.
+
+```bash
+python src/examples.py --agentic
+```
+
+Here you are telling the system to switch from the deterministic to the agentic demonstration.
+
+There deterministic example shows:
+
+* fixed rules
+* predictable outputs
+* no memory
+* no adaptation
+* same input --> same result
+
+The agent example shows something fundamentally different:
+
+* the Agent wraps the deterministic framework
+* it interpreates determinstic signals
+* it chooses an intent
+* it selects an actio based on its internal policy
+* it stores memory of past decisions
+* it learns from feedback
+* it adapts its policy over time
+* future behavior changes based on experience
+
+In other words:
+
+"--agentic" activates the real agentic layer instead of the simple deterministic engine.
+
+

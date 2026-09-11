@@ -192,6 +192,88 @@ class DeterministicFramework:
             "trace": trace
         }
 
+"""
+After adding Agentic layer, it becomes Determinic + Agentic that has the following:
+* A full agent - a true agentic laye
+* memory tracking - stores past decisions/outcomes
+* planning - decides what to do
+* action - executes an action
+* learn - updates strategy based on feedback
+
+* It is important to understand that even though it is agentic, it is still following a determistic rule set that it cannot go above
+"""
+class Agent:
+
+    """
+    This is the REAL agentic layer:
+    - memory
+    - planning
+    - action
+    - learning
+    It consumes deterministic outputs but does not change them.
+    """
+
+    def __init__(self, framework: DeterministicFramework):
+        self.framework = framework
+        self.memory = [] # stores past plans, actions, feedback
+        self.policy = {
+            "escalate": "escalate",
+            "deadline": "prioritize",
+            "risk": "mitigate",
+            "default": "standard"
+        }
+
+    def interpret(self, deterministic_output):
+        """
+        Converts deterministic rule results into agentic intent
+        This keeps deterministic output unchanged
+        """
+        rules = deterministic_output["rules"]
+
+        if rules["escalate"]:
+            return "escalate"
+        if rules["deadline"]:
+            return "deadline"
+        if rules["risk"]:
+            return "risk"
+        return "default"
+
+    def plan(self, text):
+        deterministic_output = self.framework.run(text)
+        intent = self.interpret((deterministic_output))
+        action = self.policy[intent]
+
+        plan= {
+            "intent":intent,
+            "action":action,
+            "deterministic_putput": deterministic_output
+        }
+
+        self.memory.append({plan:plan})
+        return plan
+
+    def act(self, plan):
+        """
+        Executes the chosen action
+        In a real system, this would call APIs or workflows
+        """
+        outcome = f"Executed: {plan['action']}"
+        self.memory.append({"outcome": outcome})
+        return outcome
+
+    def learn(self, feedback):
+        """
+        Updates internal policy based on feedback.
+        This is true agentic adaption
+        """
+
+        if "too aggresive" in feedback.lower():
+            self.policy["escalate"] = "notify"
+        if "too slow" in feedback.lower():
+            self.policy["deadline"] = "expedite"
+
+        self.memory.append({"feedback": feedback, "policy": dict(self.policy)})
+        
 # ------------------------------------------------------------
 # CLI Runner
 # ------------------------------------------------------------
