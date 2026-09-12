@@ -43,14 +43,11 @@ def run_ai_example():
 
     # 1. Get results from deterministic layer (article 1)
     result = run_deterministic_example()
-
     #2. Load AI Module(local Ollama)
     ai_model = OllamaModel(model_name="llama3.2")
-
     #3. Route deteministic output through AI layer
     router = AIActionRouter(ai_model)
     ai_output = router.route(result)
-
 
     #4. Print results
     print("\n=== AI Layer Output ===")
@@ -70,7 +67,10 @@ def run_ai_example():
     return ai_output
 
 def agent_example():
-    framework = DeterministicFramework()
+    framework = DeterministicFramework(
+        inputs_path = "deterministic/inputs.json",
+        rules_path="deterministic/rules.yaml"
+    )
     agent = Agent(framework)
 
     text = "We have an urgent deadline and potential risk."

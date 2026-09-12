@@ -154,7 +154,7 @@ class DeterministicFramework:
     # --------------------------------------------------------
     # Evaluation
     # --------------------------------------------------------
-    def evaluate(self) -> Dict[str, Any]:
+    def evaluate(self, text: str = None) -> Dict[str, Any]:
         """
         Evaluates rules in deterministic order.
 
@@ -166,10 +166,18 @@ class DeterministicFramework:
 
         If no rule matches, the framework escalates instad of guessing
         """
+
+        print("DEBUG RULE NAMES:", [rule.name for rule in self.rules])
+        if text is None:
+            text = self.inputs
+
         trace= []
+        rule_results = {}
 
         for rule in self.rules:
             matched = self._matches_conditions(rule, self.inputs)
+
+            rule_results[rule.name] = matched
 
             trace.append({
                 "rule": rule.name,
@@ -177,20 +185,66 @@ class DeterministicFramework:
             })
 
             if matched:
+
+                intent_map = {
+                    "approve_low_risk": "risk",
+                    "approve_existing_customer": "deadline",
+                    "escalate_medium_risk": "escalate",
+                    "reject_high_risk": "risk",
+                    "reject_high_amount": "risk"
+                }
+
+                # Convert deterministic rule names (e.g., "deadline_rule") into the
+                # simpler intent signals the agent expects (e.g., "deadline").
+                # We loop through each rule result, check if it has a corresponding
+                # intent name in intent_map, and build a new dictionary with the
+                # translated keys and their True/False values.
+                intent_results = {
+                    intent_map[name]: val
+                    for name, val in rule_results.items()
+                    if name in intent_map
+                }
+
+                print("DEBUG (MATCHED) intent_results:", intent_results)
+                print("DEBUG (MATCHED) rule_results:", rule_results)
+                print("DEBUG (MATCHED) trace:", trace)
                 return{
                     "matched_rule": rule.name,
                     "outcome": rule.outcome,
                     "escalation": rule.escalation,
-                    "trace": trace
+                    "trace": trace,
+                    "rules": intent_results  # required for agentic layer
                 }
  
-            # No rule matched -> deterministic escalation
+        # No rule matched -> deterministic escalation
+        intent_map = {
+            "approve_low_risk": "risk",
+            "approve_existing_customer": "deadline",
+            "escalate_medium_risk": "escalate",
+            "reject_high_risk": "risk",
+            "reject_high_amount": "risk"
+        }
+
+        intent_results = {
+            intent_map[name]: val
+            for name, val in rule_results.items()
+            if name in intent_map
+        }
+
+        print("DEBUG (NO MATCH) intent_results:", intent_results)
+        print("DEBUG (NO MATCH) rule_results:", rule_results)
+        print("DEBUG (NO MATCH) trace:", trace)
+
         return {
             "matched_rule": None,
             "outcome": "NO MATCH",
             "escalation": "ESCALATE_TO_REVIEW",
-            "trace": trace
+            "trace": trace,
+            "rules": intent_results # required for agentic layer
         }
+    
+    def run(self, text: str):
+        return self.evaluate(text)
 
 """
 After adding Agentic layer, it becomes Determinic + Agentic that has the following:
@@ -230,11 +284,13 @@ class Agent:
         """
         rules = deterministic_output["rules"]
 
-        if rules["escalate"]:
+        print("AGENT RECEIVED RULES:", rules)
+
+        if rules.get("escalate"):
             return "escalate"
-        if rules["deadline"]:
+        if rules.get("deadline"):
             return "deadline"
-        if rules["risk"]:
+        if rules.get("risk"):
             return "risk"
         return "default"
 
@@ -249,7 +305,7 @@ class Agent:
             "deterministic_putput": deterministic_output
         }
 
-        self.memory.append({plan:plan})
+        self.memory.append(plan)
         return plan
 
     def act(self, plan):
