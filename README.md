@@ -362,5 +362,13 @@ In other words:
 
 "--agentic" activates the real agentic layer instead of the simple deterministic engine.
 
+### 8. Running Dynamic Deterministic Mode
 
+You'll see dynamic determinism in action: same rules, different routing, differnt outcome, all deterministic.
+
+To run:
+
+```Bash
+python examples.py --dynamic
+```
 
