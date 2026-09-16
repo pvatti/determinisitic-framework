@@ -13,8 +13,10 @@ A simple determintistic framework that:
 # import statement for packes the file will be using
 import json
 import yaml
+import os
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+
 
 # ------------------------------------------------------------
 # Rule Model
@@ -57,6 +59,12 @@ class DeterministicFramework:
     # --------------------------------------------------------
     def _load_inputs(self) -> Dict[str, Any]:
         """
+        Deterministic inputs from JSON
+        Dynamic Determinism will wrap this
+        """
+        if not os.path.exists(self.inputs_path):
+            return {}
+        """
         Loads the input data from a JSON file
 
         This file represents the "scenario" the user wants to evaluate
@@ -78,6 +86,13 @@ class DeterministicFramework:
     # --------------------------------------------------------
 
     def _load_rules(self) -> List[Rule]:
+
+        """
+        load deterministic rules from YAML
+        If thhe files does not exist, return an emmpty list
+        """
+        if not os.path.exists(self.rules_path):
+            return []
         """
         Loads deterministic rules from a YAML file.
 
@@ -91,20 +106,20 @@ class DeterministicFramework:
         with open(self.rules_path, "r", encoding="utf-8") as f:
             raw = yaml.safe_load(f)
 
-        rules: List[Rule] = []
+        rules: List[Dict[str, Any]] = []
 
         for item in raw.get("rules", []):
-            rules.append(
-                Rule(
-                    name=item.get("name", "unnamed_rule"),
-                    conditions=item.get("conditions", {}),
-                    outcome=item.get("outcome", "UNSPECIFIED_OUTCOME"),
-                    escalation=item.get("escalation"),
-                    priority=item.get("priority", 100),
-                )
-            )
+            rule_dict = {
+                "name": item.get("name", "unnamed_rule"),
+                "conditions": item.get("conditions", {}),
+                "outcome": item.get("outcome", "UNSPECIFIED_OUTCOME"),
+                "escalation": item.get("escalation"),
+                "priority": item.get("priority", 100),
+            }
 
-        rules.sort(key=lambda r: (r.priority, r.name))
+            rules.append(rule_dict)
+        # sort rules by priority
+        rules.sort(key=lambda r: (r["priority"], r["name"]))
         return rules
 
 
@@ -128,7 +143,7 @@ class DeterministicFramework:
         No guessing. No probability. No inference.
         Everything is explicit and deterministic
         """
-        for key, expected in rule.conditions.items():
+        for key, expected in rule["conditions"].items():
 
             value = inputs.get(key)
             if value is None:
@@ -167,9 +182,7 @@ class DeterministicFramework:
         If no rule matches, the framework escalates instad of guessing
         """
 
-        print("DEBUG RULE NAMES:", [rule.name for rule in self.rules])
-        if text is None:
-            text = self.inputs
+        print("DEBUG RULE NAMES:", [rule["name"] for rule in self.rules])
 
         trace= []
         rule_results = {}
@@ -177,10 +190,10 @@ class DeterministicFramework:
         for rule in self.rules:
             matched = self._matches_conditions(rule, self.inputs)
 
-            rule_results[rule.name] = matched
+            rule_results[rule["name"]] = matched
 
             trace.append({
-                "rule": rule.name,
+                "rule": rule["name"],
                 "matched" : matched
             })
 
@@ -209,9 +222,9 @@ class DeterministicFramework:
                 print("DEBUG (MATCHED) rule_results:", rule_results)
                 print("DEBUG (MATCHED) trace:", trace)
                 return{
-                    "matched_rule": rule.name,
-                    "outcome": rule.outcome,
-                    "escalation": rule.escalation,
+                    "matched_rule": rule["name"],
+                    "outcome": rule["outcome"],
+                    "escalation": rule["escalation"],
                     "trace": trace,
                     "rules": intent_results  # required for agentic layer
                 }
@@ -242,9 +255,75 @@ class DeterministicFramework:
             "trace": trace,
             "rules": intent_results # required for agentic layer
         }
+
+    def _compute(self) -> Dict[str, Any]:
+        """
+        Deterministic logic layer.
+        """
+        numbers = self.inputs.get("numbers", [])
+        rule_results = self.evaluate_rules()
+
+        return {
+            "message": "Deterministic framework executed.",
+            "value": sum(numbers),
+            "rules_triggered": rule_results["matched_rules"],
+        }
     
-    def run(self, text: str):
-        return self.evaluate(text)
+    def evaluate_rules(self) -> Dict[str, Any]:
+        """
+        Evaluate deterministic rules against inputs.
+        """
+        matched = []
+
+        for rule in self.rules:
+            if self._conditions_match(rule["conditions"]):
+                matched.append(
+                    {
+                        "rule": rule["name"],
+                        "outcome": rule["outcome"],
+                        "escalation": rule["escalation"],
+                    }
+                )
+
+        return {"matched_rules": matched}
+
+    def _conditions_match(self, conditions: Dict[str, Any]) -> bool:
+        """
+        Core condition-matching logic.
+        Every rule uses this to decide if it fires.
+        """
+        for key, expected_value in conditions.items():
+            actual_value = self.inputs.get(key)
+            if actual_value != expected_value:
+                return False
+        return True
+    
+    def run(self) -> Dict[str, Any]:
+        rule_results = self.evaluate_rules()
+        compute_results = self._compute()
+
+        explanation = {
+            "summary": "The deterministic engine loaded inputs and rules, evaluated all rule conditions, "
+                    "triggered any matching rules, and computed a final deterministic value.",
+            "inputs_summary": f"{len(self.inputs)} inputs loaded from JSON.",
+            "rules_summary": f"{len(self.rules)} rules loaded from YAML.",
+            "rules_triggered": (
+                f"{len(rule_results['matched_rules'])} rule(s) matched: "
+                + ", ".join([r['rule'] for r in rule_results['matched_rules']])
+                if rule_results["matched_rules"] else "No rules matched."
+            ),
+            "compute_summary": (
+                f"The compute layer summed the 'numbers' input to produce value={compute_results['value']}."
+            )
+        }
+        
+        return {
+            "status": "success",
+            "inputs_used": self.inputs,
+            "rules_loaded": len(self.rules),
+            "result": self._compute(),
+            "explanation": explanation
+        }
 
 """
 After adding Agentic layer, it becomes Determinic + Agentic that has the following:
@@ -282,21 +361,33 @@ class Agent:
         Converts deterministic rule results into agentic intent
         This keeps deterministic output unchanged
         """
-        rules = deterministic_output["rules"]
+        triggered_rules = deterministic_output["result"].get("rules_triggered", [])
+        print("AGENT RECEIVED RULES:", triggered_rules)
 
-        print("AGENT RECEIVED RULES:", rules)
-
-        if rules.get("escalate"):
+        if not triggered_rules:
             return "escalate"
-        if rules.get("deadline"):
+        
+        first_rule = triggered_rules[0]
+
+        outcome = first_rule.get("outcome")
+        escalation = first_rule.get("escalation")
+
+        if escalation:
+            return "escalate"
+        if outcome == "APPROVE":
             return "deadline"
-        if rules.get("risk"):
-            return "risk"
-        return "default"
+        if outcome == "REJECT":
+            return "reject"
+        if outcome == "REVIEW":
+            return "review"
+        return "unknown"
 
     def plan(self, text):
-        deterministic_output = self.framework.run(text)
+        #Run deterministic engine (no text argument anymore)
+        deterministic_output = self.framework.run()
+        #Interpret deterministic output
         intent = self.interpret((deterministic_output))
+        #Map intent to action
         action = self.policy[intent]
 
         plan= {
@@ -329,7 +420,6 @@ class Agent:
             self.policy["deadline"] = "expedite"
 
         self.memory.append({"feedback": feedback, "policy": dict(self.policy)})
-        
 # ------------------------------------------------------------
 # CLI Runner
 # ------------------------------------------------------------

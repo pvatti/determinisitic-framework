@@ -7,10 +7,20 @@ non-technical users can run the example without touching the core engine.
 """
 
 from deterministic.framework import DeterministicFramework, Agent
+from dynamic_determinism.dynamic_wrapper import DynamicDeterminism
 from ai.ollama_model import OllamaModel
 from ai.ai_action_layer import AIActionRouter
 import sys
 
+def run_dynamic_example():
+    engine = DynamicDeterminism(
+        inputs_path="deterministic/inputs.json",
+        rules_path="deterministic/rules.yaml",
+    )
+
+    result = engine.run()
+    print("Dynamic Deterministic Output: ")
+    print(result)
 
 def run_deterministic_example():
     """
@@ -100,6 +110,9 @@ if __name__ == "__main__":
     elif "--agentic" in sys.argv:
         #Article 10: run agentic
         agent_example()
+    elif "--dynamic" in sys.argv:
+        #Article 11: run dynamic determinism
+        run_dynamic_example()
     else:
         #article 1 default : run deterministic only
         run_deterministic_example()
